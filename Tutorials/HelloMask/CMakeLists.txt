@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( Filter )
+find_package( OpenCV REQUIRED )
+add_executable( Filter.o Filter.cpp )
+target_link_libraries( Filter.o ${OpenCV_LIBS} )
