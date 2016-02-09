@@ -1,3 +1,6 @@
+License for the Blog CSS template from pure-css
+
+
 Software License Agreement (BSD License)
 ========================================
 

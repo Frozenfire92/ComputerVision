@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assignment 1 - Joel Kuntz</title>
 
-    <link rel="stylesheet" href="bower_components/pure/pure-min.css">
+    <link rel="stylesheet" href="pure/pure-min.css">
 
     <!--[if lte IE 8]>
-        <link rel="stylesheet" href="bower_components/pure/grids-responsive-old-ie-min.css">
+        <link rel="stylesheet" href="pure/grids-responsive-old-ie-min.css">
         <link rel="stylesheet" href="css/layouts/blog-old-ie.css">
     <![endif]-->
     <!--[if gt IE 8]><!-->
-        <link rel="stylesheet" href="bower_components/pure/grids-responsive-min.css">
+        <link rel="stylesheet" href="pure/grids-responsive-min.css">
         <link rel="stylesheet" href="css/layouts/blog.css">
     <!--<![endif]-->
+    <link rel="stylesheet" href="css/custom.css">
 </head>
 <body>
     <div id="layout" class="pure-g">
@@ -32,13 +33,207 @@
                 <div class="posts">
                     <section class="post">
                         <header class="post-header">
-                            <h2 class="post-title">Everything You Need to Know About Grunt</h2>
+                            <h2 class="post-title">Overview</h2>
                         </header>
 
                         <div class="post-description">
                             <p>
-                                Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                                In this project our goal was to create Hybrid Images. The final image is composed of two (or more) images where low frequencies of one image are superimposed over high frequencies of the other. The human visual system causes us to interpret these images differently depending on the viewing distance. Generally the high frequency image is visible up close and the low frequency image is visible at a distance. This technique is based on the 2006 Hybrid Images paper available <a href="http://cvcl.mit.edu/hybrid/OlivaTorralb_Hybrid_Siggraph06.pdf">here</a>.
                             </p>
+                        </div>
+                    </section>
+
+                    <section class="post">
+                        <header class="post-header">
+                            <h2 class="post-title">Process</h2>
+                        </header>
+
+                        <div class="post-description">
+                            <h4>Setup</h4>
+                            <p>
+                                In order for hybrid images to work, the images must be aligned. These input images are pre-aligned so this simplifies the code. Next, create Gaussian and Laplacian pyramids for each of the input images. This part was quite tricky [explained in a later section], so the algorithm was modified to do the following:
+                                <ul>
+                                    <li>Apply a Gaussian Filter on the original image</li>
+                                    <li>Subtract this filtered image from the original to get the Laplacian</li>
+                                    <li>Repeat this process for the pyramid's depth, but this time on the previous iterations Gaussian Filter output</li>
+                                </ul>
+                                While this process is not what is traditionally done for the pyramids, the results seemed to be close. The difference between my algorithm and the traditional one is  that the image is not down scaled between each iteration and then upscaled when saving. I will explain why in a later section.
+                            </p>
+
+                            <div class="pure-g no-custom">
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFG0.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFG1.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFG2.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFG3.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFG4.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFG5.png" height="428" width="428" alt=""></div>
+                            </div>
+                            <div class="pure-g no-custom">
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFL0.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFL1.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFL2.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFL3.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFL4.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-6"><img class="pure-img" src="img/pyramid/LPFL5.png" height="428" width="428" alt=""></div>
+                            </div>
+
+                            <h4>Reconstruction</h4>
+                            <p>
+                                Now we reconstruct the pyramids into a single image. The process is as follows, where N is the cutoff:
+                                <ul>
+                                    <li>Take the last level of the Gaussian pyramid of Image 1 (blurriest)</li>
+                                    <li>Pixel wise add the first (length - N) levels of the Laplacian pyramid of Image 2</li>
+                                </ul>
+                                The result is the low frequencies of Image 1 and the high frequencies of Image 2 which is the desired effect as outlined in the paper. The N (cutoff) value will determine how much of the high frequencies are used. While there technically isn't a cutoff for the low frequencies this seemed to work fine for our purposes.
+                            </p>
+
+                            <h4>Configuration</h4>
+                            <p>
+                                There are a few variables with freedom for change, and a lot of the process was trial and error. To make this easier I wrote a shell script to: make the project, clean the output directory, and then run on the assortment of variables. In terms of pyramid size, I ran each with a size of 4, 6, 8, and 10 with cutoff values ranging from 1 to that size. The other two variables are related to the Gaussian kernel being, aperture size and sigma. The aperture size is the size of the kernel and must be odd. I settled on 5 for this number as it produced the best results without making the low frequency image too blurry. The sigma (standard deviation) was a lot of trial and in the end, I found the sigma OpenCV generated automatically to be the best (0.3*((aperture-1)*0.5 - 1) + 0.8).
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="post">
+                        <header class="post-header">
+                            <h2 class="post-title">Issues</h2>
+                        </header>
+
+                        <div class="post-description">
+                            <p>
+                                I found this project to be quite difficult yet engaging at the same time. My first difficulty was in the paper, I thought it was very well written but left out some key points about implementation and was very abstract or high level. Next was the assignment description, I found it to make sense but again left out some important details about implementation. I didn't need to know the specific implementation details but some high level points of where to start would have been greatly helpful. Initially I was just trying to add together an image after a single Gaussian filter and Laplacian operator. This sort of worked but didn't give the effect of different images at different viewing distances. If it wasn't for my strong google-fu I don't think I would have ever known to use the pyramids based on the assignment description. I spent a lot of time trying variations of my initial attempt that led me nowhere which was frustrating.
+                            </p>
+                            <p>
+                                In the implementation described above I mentioned my modified pyramid. The reason I decided to do it this way and not downscale/upscale the images after the filters had happened was because the images were of odd sizes. When I got to the reconstruction part I wasn't able to add the images together due to them being different sizes. For example:
+                                <ul>
+                                    <li>410x361 scaled down by half, twice</li>
+                                    <li>102x90 scaled up 2 times, twice</li>
+                                    <li>408x360</li>
+                                </ul>
+                                This caused significant issues and I was not able to find a solution to adding different sized images together. I tried scaling the images to be of the same size but this caused the Laplacian to revert to a Gaussian. From looking at the images produced in my pyramid compared with how they were before upscaling in the standard way I deemed this to be ok.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="post">
+                        <header class="post-header">
+                            <h2 class="post-title">Conclusion</h2>
+                        </header>
+
+                        <div class="post-description">
+                            <p>
+                                I really liked this project and find the concept to be quite interesting. I think it could make some cool applications that could teach some very fundamental aspects of computer vision in a fun and easy to understand way. I am happy with my results as it does obtain the effect desired, but doesn't quite look the same as the sample output. I look forward to learning about the proper way to implement this to fix mine and compare the results.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="post">
+                        <header class="post-header">
+                            <h2 class="post-title">Results</h2>
+                        </header>
+
+                        <div class="post-description">
+
+                            <p>Note that some images didn't look right with the swapped high/low and thus they weren't included. A CSS scaled down image is beside each to mimic the effect of looking at it from a distance.</p>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Bird</p>
+                                    <p>High: Plane</p>
+                                    <p>Pyramid Size: 6</p>
+                                    <p>Cutoff: 3</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/birdPlane6_3_5.png" height="331" width="375" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/birdPlane6_3_5.png" height="82" width="93" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Plane</p>
+                                    <p>High: Bird</p>
+                                    <p>Pyramid Size: 8</p>
+                                    <p>Cutoff: 3</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/planebird_8_3_5.png" height="331" width="375" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/planebird_8_3_5.png" height="82" width="93" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Dog</p>
+                                    <p>High: Cat</p>
+                                    <p>Pyramid Size: 8</p>
+                                    <p>Cutoff: 5</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/dogcat_8_5_5.png" height="361" width="410" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/dogcat_8_5_5.png" height="90" width="102" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Einstein</p>
+                                    <p>High: Marilyn</p>
+                                    <p>Pyramid Size: 6</p>
+                                    <p>Cutoff: 1</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/einlyn_6_1_5.png" height="265" width="225" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/einlyn_6_1_5.png" height="66" width="56" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Fish</p>
+                                    <p>High: Submarine</p>
+                                    <p>Pyramid Size: 8</p>
+                                    <p>Cutoff: 2</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/fishsub_8_2_5.png" height="307" width="375" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/fishsub_8_2_5.png" height="77" width="94" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Submarine</p>
+                                    <p>High: Fish</p>
+                                    <p>Pyramid Size: 8</p>
+                                    <p>Cutoff: 5</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/subfish_8_5_5.png" height="307" width="375" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/subfish_8_5_5.png" height="77" width="94" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Motorcycle</p>
+                                    <p>High: Bicycle</p>
+                                    <p>Pyramid Size: 6</p>
+                                    <p>Cutoff: 4</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/motorbike_6_4_5.png" height="300" width="453" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/motorbike_6_4_5.png" height="75" width="113" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Penny Back</p>
+                                    <p>High: Penny Front</p>
+                                    <p>Pyramid Size: 8</p>
+                                    <p>Cutoff: 1</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/penny_bf_8_1_5.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/penny_bf_8_1_5.png" height="107" width="107" alt=""></div>
+                            </div>
+
+                            <div class="pure-g">
+                                <div class="pure-u-1-3">
+                                    <p>Low: Penny Front</p>
+                                    <p>High: Penny Back</p>
+                                    <p>Pyramid Size: 8</p>
+                                    <p>Cutoff: 1</p>
+                                </div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/penny_fb_8_1_5.png" height="428" width="428" alt=""></div>
+                                <div class="pure-u-1-3"><img class="pure-img" src="img/output/penny_fb_8_1_5.png" height="107" width="107" alt=""></div>
+                            </div>
                         </div>
                     </section>
                 </div>

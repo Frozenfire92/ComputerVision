@@ -1,0 +1,13 @@
+.post-description .pure-g:not(.no-custom) {
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.post-description .pure-g img {
+    margin: 0 auto;
+}
+
+body {
+    background-color: #E8FFFC;
+}
