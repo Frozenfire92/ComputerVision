@@ -8,7 +8,7 @@ Notes to instructor:
 
 - In the source the "sections" are indented an extra 4 spaces because my editor supports folding and this makes it easier to navigate through logical sections of code.
 - I have a high resolution monitor so I don't bother with a max column length (sorry)
-- test.sh in the code folder will compile and run the tests
+- test.sh in the code folder will compile and run the tests (after `cmake .` has been ran)
 - This was developed and tested on:
   - Ubuntu 15.10 x64
   - cmake 3.2.2
