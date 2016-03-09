@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( EdgeTest )
+find_package( OpenCV REQUIRED )
+add_executable( Canny.o Canny.cpp )
+target_link_libraries( Canny.o ${OpenCV_LIBS} )

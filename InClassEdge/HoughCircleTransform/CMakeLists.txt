@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( EdgeTest )
+find_package( OpenCV REQUIRED )
+add_executable( HoughCT.o HoughCT.cpp )
+target_link_libraries( HoughCT.o ${OpenCV_LIBS} )

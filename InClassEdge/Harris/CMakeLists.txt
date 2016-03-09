@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( EdgeTest )
+find_package( OpenCV REQUIRED )
+add_executable( Harris.o Harris.cpp )
+target_link_libraries( Harris.o ${OpenCV_LIBS} )

@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( Histo )
+find_package( OpenCV REQUIRED )
+add_executable( Histo.o Histo.cpp )
+target_link_libraries( Histo.o ${OpenCV_LIBS} )

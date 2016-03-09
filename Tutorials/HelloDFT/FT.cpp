@@ -2,6 +2,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <iostream>
+#include <string>
 
 using namespace cv;
 using namespace std;
@@ -9,6 +10,7 @@ using namespace std;
 int main(int argc, char ** argv)
 {
     const char* filename = argc >=2 ? argv[1] : "lena.jpg";
+    string outputName = argv[2];
 
     Mat I = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
     if( I.empty())
@@ -60,6 +62,8 @@ int main(int argc, char ** argv)
 
     imshow("Input Image"       , I   );    // Show the result
     imshow("spectrum magnitude", magI);
+    magI.convertTo(magI, CV_8UC3, 255.0);
+    imwrite(outputName, magI);
     waitKey();
 
     return 0;
